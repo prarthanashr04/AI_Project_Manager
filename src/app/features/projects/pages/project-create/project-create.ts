@@ -1,17 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ProjectService } from '../../../services/project-service';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-project-create',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './project-create.html',
   styleUrl: './project-create.css',
 })
 export class ProjectCreate {
   projectForm: any;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private projectService: ProjectService, private router: Router) {
     this.projectForm = this.fb.group({
       name: ['', Validators.required],
       description: ['']
@@ -20,7 +22,13 @@ export class ProjectCreate {
 
   createProject() {
     if (this.projectForm.valid) {
-      console.log(this.projectForm.value);
+      const newProject = {
+        id: Date.now(),
+        ...this.projectForm.value
+      }
+      this.projectService.addProject(newProject);
+      this.projectForm.reset();
+      this.router.navigate(['/'])
     }
   }
 }

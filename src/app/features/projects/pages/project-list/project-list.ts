@@ -1,16 +1,16 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ProjectService } from '../../../services/project-service';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './project-list.html',
   styleUrl: './project-list.css',
 })
 export class ProjectList {
-  projects = signal([
-    { id: 1, name: 'AI Project Manager', description: 'Main system' },
-    { id: 2, name: 'Authentication Module', description: 'Login system' }
-  ]);
+  constructor(public projectService: ProjectService) { }
+
 }

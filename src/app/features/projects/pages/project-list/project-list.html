@@ -1,6 +1,6 @@
 <h2>Projects</h2>
-
-<div *ngFor="let project of projects()">
+<button routerLink="/create-project">Create New Project</button>
+<div *ngFor="let project of projectService.projects()">
     <h3>{{ project.name }}</h3>
     <p>{{ project.description }}</p>
 </div>

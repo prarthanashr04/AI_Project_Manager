@@ -1,7 +1,7 @@
 <h2>Create Project</h2>
 
 <form [formGroup]="projectForm" (ngSubmit)="createProject()">
-
+    <button type="button" routerLink="/">Back to Projects</button>
     <div>
         <label>Project Name</label>
         <input type="text" formControlName="name">
