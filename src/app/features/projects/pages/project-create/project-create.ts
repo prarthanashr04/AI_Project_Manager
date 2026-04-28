@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ProjectService } from '../../../services/project-service';
+import { ProjectService } from '../../services/project-service';
 import { Router, RouterModule } from '@angular/router';
 
 @Component({
@@ -26,9 +26,15 @@ export class ProjectCreate {
         id: Date.now(),
         ...this.projectForm.value
       }
-      this.projectService.addProject(newProject);
-      this.projectForm.reset();
-      this.router.navigate(['/'])
+      // this.projectService.addProject(newProject);
+      // this.projectForm.reset();
+      // this.router.navigate(['/'])
+      this.projectService.createProjectApi(newProject).subscribe(response => {
+        console.log('Project created successfully:', response);
+        this.projectService.addProject(newProject);
+        this.projectForm.reset();
+        this.router.navigate(['/']);
+      }, error => console.error(error))
     }
   }
 }

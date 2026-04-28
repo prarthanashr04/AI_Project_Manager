@@ -1,6 +1,10 @@
-<h2>Projects</h2>
+<h2>Projects ({{ projectService.projectCount() }})</h2>
+
 <button routerLink="/create-project">Create New Project</button>
-<div *ngFor="let project of projectService.projects()">
+
+@for (project of projectService.projects(); track project.id) {
+<div>
     <h3>{{ project.name }}</h3>
     <p>{{ project.description }}</p>
 </div>
+}

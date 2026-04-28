@@ -1,6 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProjectService } from '../../../services/project-service';
+import { ProjectService } from '../../services/project-service';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -9,8 +9,14 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, RouterModule],
   templateUrl: './project-list.html',
   styleUrl: './project-list.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProjectList {
-  constructor(public projectService: ProjectService) { }
+export class ProjectList implements OnInit {
+  public projects: any;
+  constructor(public projectService: ProjectService) {
+  }
 
+  ngOnInit() {
+    this.projectService.getProjects().subscribe();
+  }
 }
