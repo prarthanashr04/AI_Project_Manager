@@ -6,5 +6,9 @@ import { TaskBoard } from './features/tasks/pages/task-board/task-board';
 export const routes: Routes = [
     { path: '', component: ProjectList },
     { path: 'create-project', component: ProjectCreate },
-    { path: 'tasks', component: TaskBoard }
+    { path: 'tasks', component: TaskBoard },
+    {
+        path: 'projects/:id/tasks',
+        loadComponent: () => import('./features/tasks/pages/task-board/task-board').then(m => m.TaskBoard)
+    }
 ];

@@ -9,15 +9,51 @@ export class TaskService {
 
   constructor() {
     this.tasksSignal.set([
-      { id: 1, title: 'Design UI', status: 'TODO' },
-      { id: 2, title: 'Create API', status: 'IN_PROGRESS' },
-      { id: 3, title: 'Deploy App', status: 'DONE' }
+      {
+        id: 1,
+        title: 'Design UI',
+        status: 'TODO',
+        projectId: 1
+      },
+      {
+        id: 2,
+        title: 'Create API',
+        status: 'IN_PROGRESS',
+        projectId: 2
+      },
+      {
+        id: 3,
+        title: 'Deploy App',
+        status: 'DONE',
+        projectId: 3
+      }
     ]);
   }
+  todoTasks(projectId: number) {
+    return computed(() =>
+      this.tasks().filter(
+        t => t.status === 'TODO' && t.projectId === projectId
+      )
+    );
+  }
 
-  todoTasks = computed(() => this.tasks().filter(t => t.status === 'TODO'));
-  inProgressTasks = computed(() => this.tasks().filter(t => t.status === 'IN_PROGRESS'));
-  doneTasks = computed(() => this.tasks().filter(t => t.status === 'DONE'));
+  inProgressTasks(projectId: number) {
+    return computed(() =>
+      this.tasks().filter(
+        t =>
+          t.status === 'IN_PROGRESS' &&
+          t.projectId === projectId
+      )
+    );
+  }
+
+  doneTasks(projectId: number) {
+    return computed(() =>
+      this.tasks().filter(
+        t => t.status === 'DONE' && t.projectId === projectId
+      )
+    );
+  }
 
   addTask(task: Task) {
     this.tasksSignal.update(list => [...list, task]);

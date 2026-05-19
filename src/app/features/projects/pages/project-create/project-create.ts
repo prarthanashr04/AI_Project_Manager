@@ -29,12 +29,12 @@ export class ProjectCreate {
       // this.projectService.addProject(newProject);
       // this.projectForm.reset();
       // this.router.navigate(['/'])
-      this.projectService.createProjectApi(newProject).subscribe(response => {
-        console.log('Project created successfully:', response);
-        this.projectService.addProject(newProject);
-        this.projectForm.reset();
-        this.router.navigate(['/']);
-      }, error => console.error(error))
+      // this.projectService.createProjectApi(newProject).subscribe(response => {
+      // console.log('Project created successfully:', response);
+      this.projectService.addProject(newProject);
+      this.projectForm.reset();
+      this.router.navigate(['/']);
+      // }, error => console.error(error))
     }
   }
 }

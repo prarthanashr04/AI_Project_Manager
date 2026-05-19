@@ -3,11 +3,11 @@
 <div class="board">
 
     <!-- TODO -->
-    <div class="column" cdkDropList #todoList="cdkDropList" [cdkDropListData]="taskService.todoTasks()"
+    <div class="column" cdkDropList #todoList="cdkDropList" [cdkDropListData]="taskService.todoTasks(projectId)()"
         [cdkDropListConnectedTo]="[inProgressList, doneList]" (cdkDropListDropped)="drop($event, 'TODO')">
         <h3>TODO</h3>
 
-        @for (task of taskService.todoTasks(); track task.id) {
+        @for (task of taskService.todoTasks(projectId)(); track task.id) {
         <div class="card" cdkDrag [cdkDragData]="task">
             {{ task.title }}
         </div>
@@ -16,11 +16,12 @@
     </div>
 
     <!-- IN PROGRESS -->
-    <div class="column" cdkDropList #inProgressList="cdkDropList" [cdkDropListData]="taskService.inProgressTasks()"
-        [cdkDropListConnectedTo]="[todoList, doneList]" (cdkDropListDropped)="drop($event, 'IN_PROGRESS')">
+    <div class="column" cdkDropList #inProgressList="cdkDropList"
+        [cdkDropListData]="taskService.inProgressTasks(projectId)()" [cdkDropListConnectedTo]="[todoList, doneList]"
+        (cdkDropListDropped)="drop($event, 'IN_PROGRESS')">
         <h3>IN PROGRESS</h3>
 
-        @for (task of taskService.inProgressTasks(); track task.id) {
+        @for (task of taskService.inProgressTasks(projectId)(); track task.id) {
         <div class="card" cdkDrag [cdkDragData]="task">
             {{ task.title }}
         </div>
@@ -29,11 +30,11 @@
     </div>
 
     <!-- DONE -->
-    <div class="column" cdkDropList #doneList="cdkDropList" [cdkDropListData]="taskService.doneTasks()"
+    <div class="column" cdkDropList #doneList="cdkDropList" [cdkDropListData]="taskService.doneTasks(projectId)()"
         [cdkDropListConnectedTo]="[todoList, inProgressList]" (cdkDropListDropped)="drop($event, 'DONE')">
         <h3>DONE</h3>
 
-        @for (task of taskService.doneTasks(); track task.id) {
+        @for (task of taskService.doneTasks(projectId)(); track task.id) {
         <div class="card" cdkDrag [cdkDragData]="task">
             {{ task.title }}
         </div>

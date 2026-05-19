@@ -6,5 +6,7 @@
 <div>
     <h3>{{ project.name }}</h3>
     <p>{{ project.description }}</p>
+    <!-- will look like '/projects/1/tasks' -->
+    <button [routerLink]="['/projects',project.id,'tasks']">Open Board</button>
 </div>
 }
