@@ -1,5 +1,13 @@
 <h2>Task Board</h2>
+<div class="task-form">
 
+    <input type="text" placeholder="Enter task title" [(ngModel)]="newTaskTitle" />
+
+    <button (click)="createTask()">
+        Add Task
+    </button>
+
+</div>
 <div class="board">
 
     <!-- TODO -->
