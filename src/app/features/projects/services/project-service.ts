@@ -70,17 +70,38 @@ export class ProjectService {
     {
       id: 1,
       name: 'AI Project Manager',
-      description: 'Angular 21 learning project'
+      description: 'Modern Angular 21 project management application with real-time collaboration',
+      status: 'ACTIVE',
+      startDate: new Date('2026-01-15'),
+      endDate: new Date('2026-12-31'),
+      budget: 50000,
+      teamLead: 'John Doe',
+      tags: ['Angular', 'TypeScript', 'Dashboard'],
+      color: '#3b82f6'
     },
     {
       id: 2,
       name: 'E-Commerce Dashboard',
-      description: 'Admin dashboard for products and orders'
+      description: 'Admin dashboard for e-commerce platform with analytics and reporting',
+      status: 'ACTIVE',
+      startDate: new Date('2026-02-01'),
+      endDate: new Date('2026-11-30'),
+      budget: 75000,
+      teamLead: 'Jane Smith',
+      tags: ['E-Commerce', 'Analytics', 'Dashboard'],
+      color: '#8b5cf6'
     },
     {
       id: 3,
       name: 'Chat Application',
-      description: 'Realtime messaging app'
+      description: 'Realtime messaging app with WebSocket integration and notifications',
+      status: 'PLANNING',
+      startDate: new Date('2026-03-01'),
+      endDate: new Date('2026-09-30'),
+      budget: 35000,
+      teamLead: 'Alice Johnson',
+      tags: ['WebSocket', 'Real-time', 'Chat'],
+      color: '#ec4899'
     }
   ]);
 

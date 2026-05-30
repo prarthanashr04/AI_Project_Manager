@@ -12,20 +12,38 @@ export class TaskService {
       {
         id: 1,
         title: 'Design UI',
+        description: 'Create modern UI designs',
         status: 'TODO',
-        projectId: 1
+        projectId: 1,
+        priority: 'HIGH',
+        assignee: 'John Doe',
+        dueDate: new Date('2026-06-15'),
+        labels: ['Design', 'Frontend'],
+        estimatedHours: 8
       },
       {
         id: 2,
         title: 'Create API',
+        description: 'Build REST API endpoints',
         status: 'IN_PROGRESS',
-        projectId: 2
+        projectId: 1,
+        priority: 'CRITICAL',
+        assignee: 'Jane Smith',
+        dueDate: new Date('2026-05-25'),
+        labels: ['Backend'],
+        estimatedHours: 16
       },
       {
         id: 3,
         title: 'Deploy App',
+        description: 'Deploy to production',
         status: 'DONE',
-        projectId: 3
+        projectId: 1,
+        priority: 'MEDIUM',
+        assignee: 'Bob Johnson',
+        dueDate: new Date('2026-05-20'),
+        labels: ['DevOps'],
+        estimatedHours: 4
       }
     ]);
   }
@@ -61,5 +79,19 @@ export class TaskService {
 
   updateTaskStatus(taskId: number, newStatus: TaskStatus) {
     this.tasksSignal.update(list => list.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+  }
+
+  deleteTask(taskId: number) {
+    this.tasksSignal.update(list => list.filter(t => t.id !== taskId));
+  }
+
+  updateTask(taskId: number, updates: Partial<Task>) {
+    this.tasksSignal.update(list =>
+      list.map(t => t.id === taskId ? { ...t, ...updates } : t)
+    );
+  }
+
+  getTaskById(taskId: number) {
+    return this.tasks().find(t => t.id === taskId);
   }
 }

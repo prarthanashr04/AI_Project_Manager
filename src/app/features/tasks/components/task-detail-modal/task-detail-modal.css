@@ -1,0 +1,16 @@
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.25rem;
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    transition: transform var(--transition-base);
+}
+
+.close-btn:hover {
+    transform: scale(1.08);
+}

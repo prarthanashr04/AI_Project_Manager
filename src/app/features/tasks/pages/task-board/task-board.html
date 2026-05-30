@@ -1,53 +1,165 @@
-<h2>Task Board</h2>
-<div class="task-form">
-
-    <input type="text" placeholder="Enter task title" [(ngModel)]="newTaskTitle" />
-
-    <button (click)="createTask()">
-        Add Task
-    </button>
-
-</div>
-<div class="board">
-
-    <!-- TODO -->
-    <div class="column" cdkDropList #todoList="cdkDropList" [cdkDropListData]="taskService.todoTasks(projectId)()"
-        [cdkDropListConnectedTo]="[inProgressList, doneList]" (cdkDropListDropped)="drop($event, 'TODO')">
-        <h3>TODO</h3>
-
-        @for (task of taskService.todoTasks(projectId)(); track task.id) {
-        <div class="card" cdkDrag [cdkDragData]="task">
-            {{ task.title }}
-        </div>
-        }
-
+<div class="container">
+    <div class="board-header">
+        <h2>Task Board</h2>
+        <button (click)="openCreateTaskModal()" class="btn btn-primary">+ New Task</button>
     </div>
 
-    <!-- IN PROGRESS -->
-    <div class="column" cdkDropList #inProgressList="cdkDropList"
-        [cdkDropListData]="taskService.inProgressTasks(projectId)()" [cdkDropListConnectedTo]="[todoList, doneList]"
-        (cdkDropListDropped)="drop($event, 'IN_PROGRESS')">
-        <h3>IN PROGRESS</h3>
-
-        @for (task of taskService.inProgressTasks(projectId)(); track task.id) {
-        <div class="card" cdkDrag [cdkDragData]="task">
-            {{ task.title }}
+    <!-- Statistics -->
+    <div class="stats">
+        <div class="stat-card">
+            <span>📊 Total: {{ taskService.taskStats().total }}</span>
         </div>
-        }
-
+        <div class="stat-card">
+            <span>✅ Completion: {{ taskService.taskStats().completionPercentage }}%</span>
+        </div>
+        <div class="stat-card urgent" *ngIf="taskService.criticalTasks().length > 0">
+            <span>⚠️ Critical: {{ taskService.criticalTasks().length }}</span>
+        </div>
+        <div class="stat-card" *ngIf="taskService.overdueTasks().length > 0">
+            <span>📅 Overdue: {{ taskService.overdueTasks().length }}</span>
+        </div>
     </div>
 
-    <!-- DONE -->
-    <div class="column" cdkDropList #doneList="cdkDropList" [cdkDropListData]="taskService.doneTasks(projectId)()"
-        [cdkDropListConnectedTo]="[todoList, inProgressList]" (cdkDropListDropped)="drop($event, 'DONE')">
-        <h3>DONE</h3>
+    <!-- Task Board -->
+    <div class="board">
+        <!-- TODO -->
+        <div class="column" cdkDropList #todoList="cdkDropList" [cdkDropListData]="taskService.todoTasks()"
+            [cdkDropListConnectedTo]="[inProgressList, doneList]" (cdkDropListDropped)="drop($event, 'TODO')">
+            <div class="column-header">
+                <h3>TODO</h3>
+                <span class="count">{{ taskService.todoTasks().length }}</span>
+            </div>
 
-        @for (task of taskService.doneTasks(projectId)(); track task.id) {
-        <div class="card" cdkDrag [cdkDragData]="task">
-            {{ task.title }}
+            @for (task of taskService.todoTasks(); track task.id) {
+            <div class="card" [ngClass]="'priority-' + task.priority.toLowerCase()" cdkDrag [cdkDragData]="task"
+                (click)="openTaskDetail(task)">
+                <div class="card-header">
+                    <span class="task-title">{{ task.title }}</span>
+                    <span class="priority-badge" [ngClass]="task.priority.toLowerCase()">
+                        {{ task.priority }}
+                    </span>
+                </div>
+                @if (task.description) {
+                <p class="card-description">{{ task.description }}</p>
+                }
+                <div class="card-meta">
+                    @if (task.assignee) {
+                    <span class="assignee">👤 {{ task.assignee }}</span>
+                    }
+                    @if (task.dueDate) {
+                    <span class="due-date" [ngClass]="{ overdue: isOverdue(task.dueDate) }">
+                        📅 {{ task.dueDate | date: 'MMM dd' }}
+                    </span>
+                    }
+                    @if (task.estimatedHours) {
+                    <span class="hours">⏱️ {{ task.estimatedHours }}h</span>
+                    }
+                </div>
+                @if (task.labels && task.labels.length > 0) {
+                <div class="labels">
+                    @for (label of task.labels; track label) {
+                    <span class="label">{{ label }}</span>
+                    }
+                </div>
+                }
+            </div>
+            }
         </div>
-        }
 
+        <!-- IN PROGRESS -->
+        <div class="column" cdkDropList #inProgressList="cdkDropList" [cdkDropListData]="taskService.inProgressTasks()"
+            [cdkDropListConnectedTo]="[todoList, doneList]" (cdkDropListDropped)="drop($event, 'IN_PROGRESS')">
+            <div class="column-header">
+                <h3>IN PROGRESS</h3>
+                <span class="count">{{ taskService.inProgressTasks().length }}</span>
+            </div>
+
+            @for (task of taskService.inProgressTasks(); track task.id) {
+            <div class="card" [ngClass]="'priority-' + task.priority.toLowerCase()" cdkDrag [cdkDragData]="task"
+                (click)="openTaskDetail(task)">
+                <div class="card-header">
+                    <span class="task-title">{{ task.title }}</span>
+                    <span class="priority-badge" [ngClass]="task.priority.toLowerCase()">
+                        {{ task.priority }}
+                    </span>
+                </div>
+                @if (task.description) {
+                <p class="card-description">{{ task.description }}</p>
+                }
+                <div class="card-meta">
+                    @if (task.assignee) {
+                    <span class="assignee">👤 {{ task.assignee }}</span>
+                    }
+                    @if (task.dueDate) {
+                    <span class="due-date" [ngClass]="{ overdue: isOverdue(task.dueDate) }">
+                        📅 {{ task.dueDate | date: 'MMM dd' }}
+                    </span>
+                    }
+                    @if (task.estimatedHours) {
+                    <span class="hours">⏱️ {{ task.estimatedHours }}h</span>
+                    }
+                </div>
+                @if (task.labels && task.labels.length > 0) {
+                <div class="labels">
+                    @for (label of task.labels; track label) {
+                    <span class="label">{{ label }}</span>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </div>
+
+        <!-- DONE -->
+        <div class="column" cdkDropList #doneList="cdkDropList" [cdkDropListData]="taskService.doneTasks()"
+            [cdkDropListConnectedTo]="[todoList, inProgressList]" (cdkDropListDropped)="drop($event, 'DONE')">
+            <div class="column-header">
+                <h3>DONE</h3>
+                <span class="count">{{ taskService.doneTasks().length }}</span>
+            </div>
+
+            @for (task of taskService.doneTasks(); track task.id) {
+            <div class="card" [ngClass]="'priority-' + task.priority.toLowerCase()" cdkDrag [cdkDragData]="task"
+                (click)="openTaskDetail(task)">
+                <div class="card-header">
+                    <span class="task-title">{{ task.title }}</span>
+                    <span class="priority-badge" [ngClass]="task.priority.toLowerCase()">
+                        {{ task.priority }}
+                    </span>
+                </div>
+                @if (task.description) {
+                <p class="card-description">{{ task.description }}</p>
+                }
+                <div class="card-meta">
+                    @if (task.assignee) {
+                    <span class="assignee">👤 {{ task.assignee }}</span>
+                    }
+                    @if (task.dueDate) {
+                    <span class="due-date" [ngClass]="{ overdue: isOverdue(task.dueDate) }">
+                        📅 {{ task.dueDate | date: 'MMM dd' }}
+                    </span>
+                    }
+                    @if (task.estimatedHours) {
+                    <span class="hours">⏱️ {{ task.estimatedHours }}h</span>
+                    }
+                </div>
+                @if (task.labels && task.labels.length > 0) {
+                <div class="labels">
+                    @for (label of task.labels; track label) {
+                    <span class="label">{{ label }}</span>
+                    }
+                </div>
+                }
+            </div>
+            }
+        </div>
     </div>
+
+    <!-- Task Modal (Create/Edit) -->
+    @if (selectedTask) {
+    <app-task-detail-modal [task]="selectedTask" [mode]="isCreateMode ? 'create' : 'edit'" (save)="onTaskSave($event)"
+        (close)="closeTaskDetail()">
+    </app-task-detail-modal>
+    }
 
 </div>

@@ -1,10 +1,11 @@
-<div class="create-project-container">
-    <div class="create-header">
-        <h2>Create New Project</h2>
-        <p>Set up a new project with team and timeline information</p>
+<div class="edit-project-container">
+    <div class="edit-header">
+        <h2>Edit Project</h2>
+        <p>Update project information and details</p>
     </div>
 
-    <form [formGroup]="projectForm" (ngSubmit)="createProject()" class="project-form">
+    @if (project) {
+    <form [formGroup]="projectForm" (ngSubmit)="updateProject()" class="project-form">
         <!-- Basic Info Section -->
         <div class="form-section">
             <h3 class="section-title">Basic Information</h3>
@@ -39,10 +40,9 @@
                 <div class="form-group">
                     <label>Status *</label>
                     <select formControlName="status">
-                        <option value="PLANNING">Planning</option>
-                        <option value="ACTIVE">Active</option>
-                        <option value="ON_HOLD">On Hold</option>
-                        <option value="COMPLETED">Completed</option>
+                        <option *ngFor="let status of statusOptions" [value]="status">
+                            {{ status }}
+                        </option>
                     </select>
                 </div>
 
@@ -116,14 +116,19 @@
         <!-- Form Actions -->
         <div class="form-actions">
             <button type="submit" class="btn btn-primary" [disabled]="projectForm.invalid">
-                Create Project
+                Update Project
             </button>
             <button type="button" class="btn btn-secondary" (click)="resetForm()">
-                Clear Form
+                Reset Changes
             </button>
             <button type="button" class="btn btn-cancel" routerLink="/">
                 Back to Projects
             </button>
         </div>
     </form>
+    } @else {
+    <div class="loading">
+        <p>Loading project...</p>
+    </div>
+    }
 </div>

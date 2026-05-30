@@ -1,12 +1,129 @@
-<h2>Projects ({{ projectService.projectCount() }})</h2>
+<div class="projects-container">
+    <!-- Header -->
+    <div class="projects-header">
+        <div class="header-content">
+            <h1>Projects</h1>
+            <p>Manage and track all your projects</p>
+        </div>
+        <button class="btn btn-create" routerLink="/create-project">
+            + Create New Project
+        </button>
+    </div>
 
-<button routerLink="/create-project">Create New Project</button>
+    <!-- Statistics -->
+    <div class="statistics">
+        <div class="stat-item">
+            <div class="stat-number">{{ projectStore.projectCount() }}</div>
+            <div class="stat-label">Total Projects</div>
+        </div>
+        <div class="stat-item active">
+            <div class="stat-number">{{ projectStore.activeProjects().length }}</div>
+            <div class="stat-label">Active</div>
+        </div>
+        <div class="stat-item planning">
+            <div class="stat-number">{{ projectStore.planningProjects().length }}</div>
+            <div class="stat-label">Planning</div>
+        </div>
+        <div class="stat-item completed">
+            <div class="stat-number">{{ projectStore.completedProjects().length }}</div>
+            <div class="stat-label">Completed</div>
+        </div>
+    </div>
 
-@for (project of projectService.projects(); track project.id) {
-<div>
-    <h3>{{ project.name }}</h3>
-    <p>{{ project.description }}</p>
-    <!-- will look like '/projects/1/tasks' -->
-    <button [routerLink]="['/projects',project.id,'tasks']">Open Board</button>
+    <!-- Search and Filters -->
+    <div class="search-filters">
+        <div class="search-box">
+            <input type="text" placeholder="🔍 Search projects by name or description..." [(ngModel)]="searchQuery"
+                class="search-input" />
+        </div>
+
+        <div class="filters">
+            <select [(ngModel)]="selectedStatus" class="filter-select">
+                <option value="">All Status</option>
+                <option *ngFor="let status of statusOptions" [value]="status">
+                    {{ getStatusLabel(status) }}
+                </option>
+            </select>
+
+            <select [(ngModel)]="selectedTag" class="filter-select">
+                <option value="">All Tags</option>
+                <option *ngFor="let tag of projectStore.uniqueTags()" [value]="tag">
+                    {{ tag }}
+                </option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="projects-grid">
+        @if (filteredProjects().length > 0) {
+        @for (project of filteredProjects(); track project.id) {
+        <div class="project-card" [style.border-left-color]="project.color">
+            <div class="card-header">
+                <h3>{{ project.name }}</h3>
+                <span class="status-badge" [style.background-color]="getStatusColor(project.status)">
+                    {{ getStatusLabel(project.status) }}
+                </span>
+            </div>
+
+            <p class="card-description">{{ project.description }}</p>
+
+            @if (project.tags && project.tags.length > 0) {
+            <div class="tags">
+                @for (tag of project.tags; track tag) {
+                <span class="tag">{{ tag }}</span>
+                }
+            </div>
+            }
+
+            <div class="card-meta">
+                @if (project.teamLead) {
+                <div class="meta-item">
+                    <span class="meta-label">👤 Lead:</span>
+                    <span class="meta-value">{{ project.teamLead }}</span>
+                </div>
+                }
+                @if (project.startDate) {
+                <div class="meta-item">
+                    <span class="meta-label">📅 Start:</span>
+                    <span class="meta-value">{{ project.startDate | date: 'MMM dd, yy' }}</span>
+                </div>
+                }
+            </div>
+
+            <div class="card-actions">
+                <button [routerLink]="['/projects', project.id, 'tasks']" class="btn-board">
+                    📋 Open Board
+                </button>
+                <button routerLink="/edit-project" [queryParams]="{ id: project.id }" class="btn-edit">
+                    ✏️ Edit
+                </button>
+                <button (click)="deleteConfirm = project.id" class="btn-delete">
+                    🗑️ Delete
+                </button>
+            </div>
+
+            <!-- Delete Confirmation -->
+            @if (deleteConfirm === project.id) {
+            <div class="delete-confirm">
+                <p>Delete this project?</p>
+                <div class="confirm-actions">
+                    <button class="btn-confirm-delete" (click)="deleteProject(project.id)">
+                        Delete
+                    </button>
+                    <button class="btn-cancel-delete" (click)="deleteConfirm = null">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+            }
+        </div>
+        }
+        } @else {
+        <div class="no-projects">
+            <p>📭 No projects found</p>
+            <small>Create your first project or adjust your filters</small>
+        </div>
+        }
+    </div>
 </div>
-}
