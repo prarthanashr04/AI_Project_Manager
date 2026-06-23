@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { ProjectStore } from '../../store/project.store'
 import { FormsModule } from '@angular/forms';
 import { computed } from '@angular/core';
+import { AuthService } from '../../../auth/services/auth-service';
 
 @Component({
   selector: 'app-project-list',
@@ -16,6 +17,7 @@ import { computed } from '@angular/core';
 })
 export class ProjectList implements OnInit {
   projectStore = inject(ProjectStore)
+  authService = inject(AuthService)
   searchQuery = '';
   selectedStatus: string = '';
   selectedTag: string = '';
@@ -60,6 +62,10 @@ export class ProjectList implements OnInit {
   deleteProject(projectId: number) {
     this.projectStore.deleteProject(projectId);
     this.deleteConfirm = null;
+  }
+
+  logout() {
+    this.authService.logout().subscribe();
   }
 
   getStatusColor(status: string): string {

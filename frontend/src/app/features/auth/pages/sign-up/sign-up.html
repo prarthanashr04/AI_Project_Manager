@@ -1,0 +1,44 @@
+<div class="auth-page">
+    <form class="auth-panel" [formGroup]="signUpForm" (ngSubmit)="signUp()">
+        <div class="auth-header">
+            <h1>Create account</h1>
+            <p>Start managing your projects securely.</p>
+        </div>
+
+        @if (errorMessage) {
+        <div class="auth-error">{{ errorMessage }}</div>
+        }
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input id="name" type="text" formControlName="name" autocomplete="name">
+            @if (signUpForm.controls.name.touched && signUpForm.controls.name.invalid) {
+            <span class="error-message">Name is required.</span>
+            }
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email" autocomplete="email">
+            @if (signUpForm.controls.email.touched && signUpForm.controls.email.invalid) {
+            <span class="error-message">Enter a valid email.</span>
+            }
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" formControlName="password" autocomplete="new-password">
+            @if (signUpForm.controls.password.touched && signUpForm.controls.password.invalid) {
+            <span class="error-message">Use 8+ characters with uppercase, lowercase, and a number.</span>
+            }
+        </div>
+
+        <button class="btn btn-primary" type="submit" [disabled]="isSubmitting">
+            {{ isSubmitting ? 'Creating...' : 'Create account' }}
+        </button>
+
+        <p class="auth-switch">
+            Already have an account? <a routerLink="/signin">Sign in</a>
+        </p>
+    </form>
+</div>

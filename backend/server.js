@@ -1,56 +1,27 @@
 const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
 const db = require("./database/db");
+const initDatabase = require("./database/init");
+const authRoutes = require("./routes/auth.routes");
+const requireAuth = require("./middleware/auth.middleware");
+
 const app = express();
-app.use(express.json());
-// app.get("/projects", (req, res) => {
-//   const projects = [
-//     {
-//       id: 1,
-//       name: "AI Project Manager",
-//       description:
-//         "Modern Angular 21 project management application with real-time collaboration",
-//       status: "ACTIVE",
-//       startDate: new Date("2026-01-15"),
-//       endDate: new Date("2026-12-31"),
-//       budget: 50000,
-//       teamLead: "John Doe",
-//       tags: ["Angular", "TypeScript", "Dashboard"],
-//       color: "#3b82f6",
-//     },
-//     {
-//       id: 2,
-//       name: "E-Commerce Dashboard",
-//       description:
-//         "Admin dashboard for e-commerce platform with analytics and reporting",
-//       status: "ACTIVE",
-//       startDate: new Date("2026-02-01"),
-//       endDate: new Date("2026-11-30"),
-//       budget: 75000,
-//       teamLead: "Jane Smith",
-//       tags: ["E-Commerce", "Analytics", "Dashboard"],
-//       color: "#8b5cf6",
-//     },
-//     {
-//       id: 3,
-//       name: "Chat Application",
-//       description:
-//         "Realtime messaging app with WebSocket integration and notifications",
-//       status: "PLANNING",
-//       startDate: new Date("2026-03-01"),
-//       endDate: new Date("2026-09-30"),
-//       budget: 35000,
-//       teamLead: "Alice Johnson",
-//       tags: ["WebSocket", "Real-time", "Chat"],
-//       color: "#ec4899",
-//     },
-//   ];
-//   res.json(projects);
-// });
 
-app.get("/projects", (req, res) => {
-  const sql = "SELECT * FROM projects";
+app.use(helmet());
+app.use(
+  cors({
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:4200",
+  })
+);
+app.use(express.json({ limit: "1mb" }));
 
-  db.query(sql, (err, result) => {
+app.use("/auth", authRoutes);
+
+app.get("/projects", requireAuth, (req, res) => {
+  const sql = "SELECT * FROM projects WHERE user_id = ?";
+
+  db.query(sql, [req.user.id], (err, result) => {
     if (err) {
       console.error(err);
 
@@ -58,11 +29,12 @@ app.get("/projects", (req, res) => {
         message: "Database Error",
       });
     }
+
     res.json(result);
   });
 });
 
-app.post("/projects", (req, res) => {
+app.post("/projects", requireAuth, (req, res) => {
   const {
     name,
     description,
@@ -76,7 +48,7 @@ app.post("/projects", (req, res) => {
   } = req.body;
 
   const sql =
-    "INSERT INTO projects(name,description,status,start_date,end_date,budget,team_lead,tags,color) VALUES (?,?,?,?,?,?,?,?,?)";
+    "INSERT INTO projects(name,description,status,start_date,end_date,budget,team_lead,tags,color,user_id) VALUES (?,?,?,?,?,?,?,?,?,?)";
   const values = [
     name,
     description,
@@ -87,7 +59,9 @@ app.post("/projects", (req, res) => {
     teamLead,
     Array.isArray(tags) ? tags.join(",") : tags,
     color,
+    req.user.id,
   ];
+
   db.query(sql, values, (err, result) => {
     if (err) {
       console.error(err);
@@ -96,6 +70,7 @@ app.post("/projects", (req, res) => {
         message: "Database Error",
       });
     }
+
     res.status(201).json({
       message: "Project Created Successfully",
       projectId: result.insertId,
@@ -103,8 +78,8 @@ app.post("/projects", (req, res) => {
   });
 });
 
-app.put("/projects/:id", (req, res) => {
-  let id = req.params.id;
+app.put("/projects/:id", requireAuth, (req, res) => {
+  const id = req.params.id;
   const {
     name,
     description,
@@ -118,7 +93,7 @@ app.put("/projects/:id", (req, res) => {
   } = req.body;
 
   const sql =
-    "UPDATE projects SET name=?, description=?, status=?, start_date=?, end_date=?, budget=?, team_lead=?, tags=?, color=? WHERE id=?";
+    "UPDATE projects SET name=?, description=?, status=?, start_date=?, end_date=?, budget=?, team_lead=?, tags=?, color=? WHERE id=? AND user_id=?";
   const values = [
     name,
     description,
@@ -130,7 +105,9 @@ app.put("/projects/:id", (req, res) => {
     Array.isArray(tags) ? tags.join(",") : tags,
     color,
     id,
+    req.user.id,
   ];
+
   db.query(sql, values, (err, result) => {
     if (err) {
       console.error(err);
@@ -139,17 +116,24 @@ app.put("/projects/:id", (req, res) => {
         message: err.message,
       });
     }
-    res.status(201).json({
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({
+        message: "Project Not Found",
+      });
+    }
+
+    res.status(200).json({
       message: "Project Updated Successfully",
     });
   });
 });
 
-app.delete("/projects/:id", (req, res) => {
-  let id = req.params.id;
-  const sql = "DELETE FROM projects WHERE id=?";
+app.delete("/projects/:id", requireAuth, (req, res) => {
+  const id = req.params.id;
+  const sql = "DELETE FROM projects WHERE id=? AND user_id=?";
 
-  db.query(sql, [id], (err, result) => {
+  db.query(sql, [id, req.user.id], (err, result) => {
     if (err) {
       console.error(err);
 
@@ -157,16 +141,26 @@ app.delete("/projects/:id", (req, res) => {
         message: err.message,
       });
     }
+
     if (result.affectedRows === 0) {
-      res.status(404).json({
+      return res.status(404).json({
         message: "Project Not Found",
       });
     }
+
     res.status(200).json({
       message: "Project Deleted Successfully",
     });
   });
 });
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
-});
+
+initDatabase()
+  .then(() => {
+    app.listen(3000, () => {
+      console.log("Server is running on port 3000");
+    });
+  })
+  .catch((err) => {
+    console.error("Database initialization failed:", err);
+    process.exit(1);
+  });

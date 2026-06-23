@@ -5,9 +5,12 @@
             <h1>Projects</h1>
             <p>Manage and track all your projects</p>
         </div>
-        <button class="btn btn-create" routerLink="/create-project">
-            + Create New Project
-        </button>
+        <div class="header-actions">
+            <button class="btn btn-secondary" type="button" (click)="logout()">Logout</button>
+            <button class="btn btn-create" routerLink="/create-project">
+                + Create New Project
+            </button>
+        </div>
     </div>
 
     <!-- Statistics -->
