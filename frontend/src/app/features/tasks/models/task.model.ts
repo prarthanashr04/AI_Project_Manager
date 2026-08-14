@@ -7,9 +7,10 @@ export interface Task {
     description?: string;
     status: TaskStatus;
     projectId: number;
-    priority: TaskPriority;        // NEW
-    assignee?: string;              // NEW
-    dueDate?: Date;                 // NEW
-    labels?: string[];              // NEW
-    estimatedHours?: number;        // NEW
+    priority: TaskPriority;
+    assignee?: string;
+    dueDate?: Date;
+    labels?: string[];
+    estimatedHours?: number;
+    position: number;
 }

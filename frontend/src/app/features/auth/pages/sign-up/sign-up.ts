@@ -19,6 +19,7 @@ export class SignUp {
 
   isSubmitting = false;
   errorMessage = '';
+  showPassword = false;
 
   signUpForm = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -61,5 +62,9 @@ export class SignUp {
           this.cdr.detectChanges();
         },
       });
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword = !this.showPassword;
   }
 }

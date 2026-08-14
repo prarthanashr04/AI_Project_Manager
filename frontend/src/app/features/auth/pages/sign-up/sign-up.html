@@ -27,7 +27,15 @@
 
         <div class="form-group">
             <label for="password">Password</label>
-            <input id="password" type="password" formControlName="password" autocomplete="new-password">
+            <div class="password-field">
+                <input id="password" [type]="showPassword ? 'text' : 'password'" formControlName="password"
+                    autocomplete="new-password">
+                <button type="button" class="password-toggle" (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                    [attr.title]="showPassword ? 'Hide password' : 'Show password'">
+                    {{ showPassword ? '◉' : '◎' }}
+                </button>
+            </div>
             @if (signUpForm.controls.password.touched && signUpForm.controls.password.invalid) {
             <span class="error-message">Use 8+ characters with uppercase, lowercase, and a number.</span>
             }

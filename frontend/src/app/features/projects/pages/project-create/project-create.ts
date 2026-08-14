@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ProjectService } from '../../services/project-service';
 import { Router, RouterModule } from '@angular/router';
 import { ProjectStore } from '../../store/project.store';
 
@@ -22,7 +21,7 @@ export class ProjectCreate {
     '#22c55e', '#06b6d4', '#14b8a6', '#f59e0b'
   ];
 
-  constructor(private fb: FormBuilder, private projectService: ProjectService, private router: Router) {
+  constructor(private fb: FormBuilder, private router: Router) {
     this.projectForm = this.fb.group({
       name: ['', Validators.required],
       description: ['', [Validators.required, Validators.minLength(10)]],
@@ -36,11 +35,10 @@ export class ProjectCreate {
     });
   }
 
-  createProject() {
+  async createProject() {
     if (this.projectForm.valid) {
       const formValue = this.projectForm.value;
       const newProject = {
-        id: Date.now(),
         name: formValue.name,
         description: formValue.description,
         status: formValue.status,
@@ -54,9 +52,13 @@ export class ProjectCreate {
         color: formValue.color
       };
 
-      this.projectStore.addProject(newProject);
-      this.projectForm.reset();
-      this.router.navigate(['/']);
+      try {
+        await this.projectStore.addProject(newProject);
+        this.projectForm.reset();
+        this.router.navigate(['/']);
+      } catch (error) {
+        console.error('Unable to create project', error);
+      }
     }
   }
 

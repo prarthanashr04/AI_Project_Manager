@@ -1,71 +1,46 @@
 import { patchState, signalStore, withComputed, withMethods, withState } from "@ngrx/signals";
-import { Task, TaskStatus } from "../models/task.model";
-import { computed } from "@angular/core";
+import { Task } from "../models/task.model";
+import { computed, inject } from "@angular/core";
+import { firstValueFrom } from 'rxjs';
+import { TaskService } from '../services/task-service';
 
 type TaskState = {
     tasks: Task[]
 }
 
 const initialState: TaskState = {
-    tasks: [
-        {
-            id: 1,
-            title: 'Design UI',
-            description: 'Create modern UI designs',
-            status: 'TODO',
-            projectId: 1,
-            priority: 'HIGH',
-            assignee: 'John Doe',
-            dueDate: new Date('2026-06-15'),
-            labels: ['Design', 'Frontend'],
-            estimatedHours: 8
-        },
-        {
-            id: 2,
-            title: 'Create API',
-            description: 'Build REST API endpoints',
-            status: 'IN_PROGRESS',
-            projectId: 1,
-            priority: 'CRITICAL',
-            assignee: 'Jane Smith',
-            dueDate: new Date('2026-05-25'),
-            labels: ['Backend'],
-            estimatedHours: 16
-        },
-        {
-            id: 3,
-            title: 'Deploy App',
-            description: 'Deploy to production',
-            status: 'DONE',
-            projectId: 1,
-            priority: 'MEDIUM',
-            assignee: 'Bob Johnson',
-            dueDate: new Date('2026-05-20'),
-            labels: ['DevOps'],
-            estimatedHours: 4
-        }
-    ]
-}
+    tasks: []
+};
 
 export const TaskStore = signalStore(
     { providedIn: 'root' },
     withState(initialState),
     withComputed((store) => ({
         todoTasks: computed(() =>
-            store.tasks().filter(task => task.status == 'TODO')
+            store.tasks()
+                .filter((task) => task.status === 'TODO')
+                .sort((a, b) => a.position - b.position)
         ),
+
         inProgressTasks: computed(() =>
-            store.tasks().filter(task => task.status == 'IN_PROGRESS')
+            store.tasks()
+                .filter((task) => task.status === 'IN_PROGRESS')
+                .sort((a, b) => a.position - b.position)
         ),
+
         doneTasks: computed(() =>
-            store.tasks().filter(task => task.status == 'DONE')
+            store.tasks()
+                .filter((task) => task.status === 'DONE')
+                .sort((a, b) => a.position - b.position)
         ),
         taskStats: computed(() => ({
             total: store.tasks().length,
             todoCount: store.tasks().filter(t => t.status == 'TODO').length,
             inProgressCount: store.tasks().filter(t => t.status == 'IN_PROGRESS').length,
             doneCount: store.tasks().filter(t => t.status == 'DONE').length,
-            completionPercentage: Math.round((store.tasks().filter(t => t.status == 'DONE').length / store.tasks().length) * 100)
+            completionPercentage: store.tasks().length === 0
+                ? 0
+                : Math.round((store.tasks().filter(t => t.status == 'DONE').length / store.tasks().length) * 100)
         })),
         criticalTasks: computed(() =>
             store.tasks().filter(task => task.priority == 'CRITICAL')
@@ -74,40 +49,92 @@ export const TaskStore = signalStore(
             store.tasks().filter(task => task.dueDate && task.dueDate < new Date() && task.status != 'DONE')
         )
     })),
-    withMethods((store) => ({
-        addTask(task: Task) {
-            patchState(store, {
-                tasks: [
-                    ...store.tasks(),
-                    task
-                ]
-            }
-            )
-        },
-        updateTaskStatus(taskId: number, newStatus: TaskStatus) {
-            patchState(store, {
-                tasks: store.tasks().map(task =>
-                    task.id === taskId ? { ...task, status: newStatus } : task
-                )
-
-            });
-
-        },
+    withMethods((
+        store,
+        taskApi = inject(TaskService)
+    ) => ({
         deleteTask(taskId: number) {
             patchState(store, {
                 tasks: store.tasks().filter(task => task.id != taskId)
             })
         },
-        updateTask(taskId: number, updates: Partial<Task>) {
+        getTaskById(taskId: number) {
+            return store.tasks().find(t => t.id === taskId);
+        },
+        async loadTasks(projectId: number) {
+            try {
+                const tasks: Task[] = await firstValueFrom(
+                    taskApi.getProjectTasks(projectId)
+                );
+
+                patchState(store, { tasks });
+            } catch (error) {
+                console.error('Unable to load tasks', error);
+                patchState(store, { tasks: [] });
+            }
+        },
+
+        async createTask(projectId: number, task: Task) {
+            const createdTask = await firstValueFrom(
+                taskApi.createTask(projectId, task)
+            );
+
             patchState(store, {
-                tasks: store.tasks().map(task =>
-                    task.id === taskId ? { ...task, ...updates } : task
+                tasks: [...store.tasks(), createdTask]
+            });
+        },
+
+        async updateTask(projectId: number, task: Task) {
+            const updatedTask = await firstValueFrom(
+                taskApi.updateTask(projectId, task)
+            );
+
+            patchState(store, {
+                tasks: store.tasks().map((existingTask) =>
+                    existingTask.id === updatedTask.id
+                        ? updatedTask
+                        : existingTask
                 )
             });
         },
 
-        getTaskById(taskId: number) {
-            return store.tasks().find(t => t.id === taskId);
-        }
+        async reorderTasks(
+            projectId: number,
+            changedTasks: Task[]
+        ) {
+            const changedTaskIds = new Set(
+                changedTasks.map((task) => task.id)
+            );
+
+            patchState(store, {
+                tasks: [
+                    ...store.tasks().filter(
+                        (task) => !changedTaskIds.has(task.id)
+                    ),
+                    ...changedTasks,
+                ],
+            });
+
+            try {
+                await firstValueFrom(
+                    taskApi.reorderTasks(
+                        projectId,
+                        changedTasks.map((task) => ({
+                            id: task.id,
+                            status: task.status,
+                            position: task.position,
+                        }))
+                    )
+                );
+            } catch (error) {
+                console.error('Unable to save task order', error);
+
+                const tasks: Task[] = await firstValueFrom(
+                    taskApi.getProjectTasks(projectId)
+                );
+
+                patchState(store, { tasks });
+            }
+        },
     }))
 )

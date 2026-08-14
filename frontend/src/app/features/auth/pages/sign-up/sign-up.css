@@ -40,3 +40,33 @@
     color: var(--accent-cyan);
     font-weight: 600;
 }
+
+.password-field {
+    position: relative;
+}
+
+.password-field input {
+    padding-right: 44px;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--gray-300);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.password-toggle:hover {
+    background: var(--gray-700);
+    color: var(--gray-50);
+}

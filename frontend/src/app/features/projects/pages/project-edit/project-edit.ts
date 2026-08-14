@@ -44,10 +44,14 @@ export class ProjectEdit implements OnInit {
     }
 
     ngOnInit() {
-        this.route.queryParams.subscribe(params => {
+        this.route.queryParams.subscribe(async params => {
             const id = params['id'];
             if (id) {
                 this.projectId = parseInt(id);
+                if (this.projectStore.projects().length === 0) {
+                    await this.projectStore.loadProjects();
+                }
+
                 this.project = this.projectStore.getProjectById(this.projectId);
                 if (this.project) {
                     this.populateForm(this.project);
@@ -78,7 +82,7 @@ export class ProjectEdit implements OnInit {
         return `${year}-${month}-${day}`;
     }
 
-    updateProject() {
+    async updateProject() {
         if (this.projectForm.valid && this.projectId) {
             const formValue = this.projectForm.value;
             const updates = {
@@ -95,8 +99,12 @@ export class ProjectEdit implements OnInit {
                 color: formValue.color
             };
 
-            this.projectStore.updateProject(this.projectId, updates);
-            this.router.navigate(['/']);
+            try {
+                await this.projectStore.updateProject(this.projectId, updates);
+                this.router.navigate(['/']);
+            } catch (error) {
+                console.error('Unable to update project', error);
+            }
         }
     }
 

@@ -1,17 +1,21 @@
 import { Component, ChangeDetectionStrategy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TaskService } from '../../services/task-service';
-import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
+import {
+  CdkDragDrop,
+  DragDropModule,
+  moveItemInArray,
+  transferArrayItem
+} from '@angular/cdk/drag-drop';
 import { Task, TaskStatus } from '../../models/task.model';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { TaskStore } from '../../store/task.store';
 import { TaskDetailModal } from '../../components/task-detail-modal/task-detail-modal';
 
 @Component({
   selector: 'app-task-board',
   standalone: true,
-  imports: [CommonModule, DragDropModule, FormsModule, TaskDetailModal],
+  imports: [CommonModule, DragDropModule, FormsModule, RouterModule, TaskDetailModal],
   templateUrl: './task-board.html',
   styleUrl: './task-board.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -30,11 +34,74 @@ export class TaskBoard implements OnInit {
     this.projectId = Number(
       this.route.snapshot.paramMap.get('id')
     );
+
+    if (Number.isInteger(this.projectId)) {
+      this.taskService.loadTasks(this.projectId);
+    }
   }
 
-  drop(event: CdkDragDrop<any>, status: TaskStatus) {
-    const task = event.item.data;
-    this.taskService.updateTaskStatus(task.id, status);
+  drop(
+    event: CdkDragDrop<Task[]>,
+    targetStatus: TaskStatus
+  ) {
+    const sourceStatus = event.item.data.status as TaskStatus;
+
+    if (event.previousContainer === event.container) {
+      const tasks = [...event.container.data];
+
+      moveItemInArray(
+        tasks,
+        event.previousIndex,
+        event.currentIndex
+      );
+
+      const reorderedTasks = tasks.map((task, position) => ({
+        ...task,
+        status: targetStatus,
+        position,
+      }));
+
+      this.taskService.reorderTasks(
+        this.projectId,
+        reorderedTasks
+      );
+
+      return;
+    }
+
+    const sourceTasks = [...event.previousContainer.data];
+    const targetTasks = [...event.container.data];
+
+    transferArrayItem(
+      sourceTasks,
+      targetTasks,
+      event.previousIndex,
+      event.currentIndex
+    );
+
+    const reorderedSource = sourceTasks.map(
+      (task, position) => ({
+        ...task,
+        status: sourceStatus,
+        position,
+      })
+    );
+
+    const reorderedTarget = targetTasks.map(
+      (task, position) => ({
+        ...task,
+        status: targetStatus,
+        position,
+      })
+    );
+
+    this.taskService.reorderTasks(
+      this.projectId,
+      [
+        ...reorderedSource,
+        ...reorderedTarget,
+      ]
+    );
   }
 
   openCreateTaskModal() {
@@ -49,7 +116,8 @@ export class TaskBoard implements OnInit {
       assignee: '',
       dueDate: undefined,
       labels: [],
-      estimatedHours: 0
+      estimatedHours: 0,
+      position: 0
     };
   }
 
@@ -63,16 +131,18 @@ export class TaskBoard implements OnInit {
     this.isCreateMode = false;
   }
 
-  onTaskSave(task: Task) {
-    if (this.isCreateMode) {
-      this.taskService.addTask({
-        ...task,
-        id: Date.now()
-      });
-    } else {
-      this.taskService.updateTask(task.id, task);
+  async onTaskSave(task: Task) {
+    try {
+      if (this.isCreateMode) {
+        await this.taskService.createTask(this.projectId, task);
+      } else {
+        await this.taskService.updateTask(this.projectId, task);
+      }
+
+      this.closeTaskDetail();
+    } catch (error) {
+      console.error('Unable to save task', error);
     }
-    this.closeTaskDetail();
   }
 
   isOverdue(date: Date | undefined): boolean {

@@ -1,7 +1,13 @@
 <div class="container">
     <div class="board-header">
-        <h2>Task Board</h2>
-        <button (click)="openCreateTaskModal()" class="btn btn-primary">+ New Task</button>
+        <div class="board-title">
+            <button type="button" routerLink="/" class="btn-back" aria-label="Back to projects">
+                <span class="back-icon" aria-hidden="true">←</span>
+                <span>Projects</span>
+            </button>
+            <h2>Task Board</h2>
+        </div>
+        <button type="button" (click)="openCreateTaskModal()" class="btn btn-primary">+ New Task</button>
     </div>
 
     <!-- Statistics -->
